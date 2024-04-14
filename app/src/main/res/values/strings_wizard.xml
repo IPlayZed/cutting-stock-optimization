@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hint_enter_width">Enter block width</string>
+    <string name="hint_enter_length1">Enter first possible length in cm</string>
+    <string name="hint_enter_length2">Enter second possible length in cm</string>
+    <string name="hint_transition_time">Enter transition time in days</string>
+
+    <string name="button_text_generate_table">Generate table</string>
+</resources>

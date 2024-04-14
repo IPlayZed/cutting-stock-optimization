@@ -4,4 +4,180 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
+    <EditText
+        android:id="@+id/blockWidth"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:hint="@string/hint_enter_width"
+        android:inputType="number" />
+
+    <EditText
+        android:id="@+id/blockLength1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:hint="@string/hint_enter_length1"
+        android:inputType="number" />
+
+    <EditText
+        android:id="@+id/blockLength2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:hint="@string/hint_enter_length2"
+        android:inputType="number" />
+
+    <EditText
+        android:id="@+id/transitionTime"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:hint="@string/hint_transition_time"
+        android:inputType="number" />
+
+    <Button
+        android:id="@+id/generateTable"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/button_text_generate_table" />
+
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" >
+
+            <EditText
+                android:id="@+id/emptyCell"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="number" />
+
+            <EditText
+                android:id="@+id/widthHorizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="number" />
+
+            <EditText
+                android:id="@+id/heightHorizontal1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="number" />
+
+            <EditText
+                android:id="@+id/heightHorizontal2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="number" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" >
+
+            <EditText
+                android:id="@+id/widthVertical"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="number" />
+
+            <EditText
+                android:id="@+id/cell11"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="number" />
+
+            <EditText
+                android:id="@+id/cell12"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="number" />
+
+            <EditText
+                android:id="@+id/cell13"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="number" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" >
+
+            <EditText
+                android:id="@+id/heightVertical1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="number" />
+
+            <EditText
+                android:id="@+id/cell21"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="number" />
+
+            <EditText
+                android:id="@+id/cell22"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="number" />
+
+            <EditText
+                android:id="@+id/cell23"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="number" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" >
+
+            <EditText
+                android:id="@+id/heightVertical2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="number" />
+
+            <EditText
+                android:id="@+id/cell31"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="numberSigned" />
+
+            <EditText
+                android:id="@+id/cell32"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="numberSigned" />
+
+            <EditText
+                android:id="@+id/cell33"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="numberSigned" />
+        </TableRow>
+
+    </TableLayout>
+
 </LinearLayout>
