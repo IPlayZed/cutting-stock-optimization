@@ -9,5 +9,5 @@
 
     <string name="button_text_calculate_optimum">Calculate optimum</string>
 
-    <string name="text_result_desc">Optimal days:</string>
+    <string name="text_result_desc">Optimal days will appear here</string>
 </resources>
