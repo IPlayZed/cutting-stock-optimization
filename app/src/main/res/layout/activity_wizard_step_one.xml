@@ -28,14 +28,6 @@
         android:hint="@string/hint_enter_length2"
         android:inputType="number" />
 
-    <EditText
-        android:id="@+id/transitionTime"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:hint="@string/hint_transition_time"
-        android:inputType="number" />
-
     <Button
         android:id="@+id/generateTable"
         android:layout_width="match_parent"
