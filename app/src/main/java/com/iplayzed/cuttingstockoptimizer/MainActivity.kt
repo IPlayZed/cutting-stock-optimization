@@ -1,12 +1,13 @@
 package com.iplayzed.cuttingstockoptimizer
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import org.ojalgo.optimisation.Expression
-import org.ojalgo.optimisation.ExpressionsBasedModel
-import org.ojalgo.optimisation.Variable
+import com.google.ortools.Loader
+import com.google.ortools.linearsolver.MPSolver
+import com.google.ortools.linearsolver.MPSolver.ResultStatus
 
 
 class MainActivity : AppCompatActivity() {
@@ -72,8 +73,8 @@ private fun performOptimization(
     cell11: Int, cell12: Int, cell13: Int,
     cell22: Int, cell23: Int, cell33: Int
 ): Double {
-    val model = ExpressionsBasedModel()
 
+    val TAG = "performOptimization"
     // These variables represent how much of a given combination is needed.
     // W represents the width of the stone block.
     // H1 represents the first possible height, H2 the second possible height.
@@ -82,110 +83,407 @@ private fun performOptimization(
 
     // Comments are for concrete 40w,60/80h.
 
-    val X_W__W_W = model.addVariable("X_W__W_W").weight(1).lower(0).integer() //X444
-    val X_W__W_H1 = model.addVariable("X_W__W_H1").weight(1).lower(0).integer()  //X446
-    val X_W__W_H2 = model.addVariable("X_W__W_H2").weight(1).lower(0).integer() //X448
-    val X_W__H1_H1 = model.addVariable("X_W__H1_H1").weight(1).lower(0).integer() //X466
-    val X_W__H1_H2 = model.addVariable("X_W__H1_H2").weight(1).lower(0).integer() //X468
-    val X_W__H2_H2 = model.addVariable("X_W__H2_H2").weight(1).lower(0).integer() //X488
-    val X_H1__W_W = model.addVariable("X_H1__W_W").weight(1).lower(0).integer() //X644
-    val X_H1__W_H1 = model.addVariable("X_H1__W_H1").weight(1).lower(0).integer() //X646
-    val X_H1__W_H2 = model.addVariable("X_H1__W_H2").weight(1).lower(0).integer() //X648
-    val X_H1__H1_H1 = model.addVariable("X_H1__H1_H1").weight(1).lower(0).integer() //X666
-    val X_H1__H1_H2 = model.addVariable("X_H1__H1_H2").weight(1).lower(0).integer() //X668
-    val X_H1__H2_H2 = model.addVariable("X_H1__H2_H2").weight(1).lower(0).integer() //X688
-    val X_H2__W_W = model.addVariable("X_H2__W_W").weight(1).lower(0).integer() //X844
-    val X_H2__W_H1 = model.addVariable("X_H2__W_H1").weight(1).lower(0).integer() //X846
-    val X_H2__W_H2 = model.addVariable("X_H2__W_H2").weight(1).lower(0).integer() //X848
-    val X_H2__H1_H1 = model.addVariable("X_H2__H1_H1").weight(1).lower(0).integer() //X866
-    val X_H2__H1_H2 = model.addVariable("X_H2__H1_H2").weight(1).lower(0).integer() //X868
-    val X_H2__H2_H2 = model.addVariable("X_H2__H2_H2").weight(1).lower(0).integer() //X888
+    Loader.loadNativeLibraries()
+    val solver = MPSolver(
+        "StoneCuttingOptimization",
+        MPSolver.OptimizationProblemType.CBC_MIXED_INTEGER_PROGRAMMING
+    )
 
-    val Y_W__W_W = model.addVariable("Y_W__W_W").binary().weight(1) //Y444
-    val Y_W__W_H1 = model.addVariable("Y_W__W_H1").binary().weight(1) //Y446
-    val Y_W__W_H2 = model.addVariable("Y_W__W_H2").binary().weight(1) //Y448
-    val Y_W__H1_H1 = model.addVariable("Y_W__H1_H1").binary().weight(1) //Y466
-    val Y_W__H1_H2 = model.addVariable("Y_W__H1_H2").binary().weight(1) //Y468
-    val Y_W__H2_H2 = model.addVariable("Y_W__H2_H2").binary().weight(1) //Y488
-    val Y_H1__W_W = model.addVariable("Y_H1__W_W").binary().weight(1) //Y644
-    val Y_H1__W_H1 = model.addVariable("Y_H1__W_H1").binary().weight(1) //Y646
-    val Y_H1__W_H2 = model.addVariable("Y_H1__W_H2").binary().weight(1) //Y648
-    val Y_H1__H1_H1 = model.addVariable("Y_H1__H1_H1").binary().weight(1) //Y666
-    val Y_H1__H1_H2 = model.addVariable("Y_H1__H1_H2").binary().weight(1) //Y668
-    val Y_H1__H2_H2 = model.addVariable("Y_H1__H2_H2").binary().weight(1) //Y688
-    val Y_H2__W_W = model.addVariable("Y_H2__W_W").binary().weight(1) //Y844
-    val Y_H2__W_H1 = model.addVariable("Y_H2__W_H1").binary().weight(1) //Y846
-    val Y_H2__W_H2 = model.addVariable("Y_H2__W_H2").binary().weight(1) //Y848
-    val Y_H2__H1_H1 = model.addVariable("Y_H2__H1_H1").binary().weight(1) //Y866
-    val Y_H2__H1_H2 = model.addVariable("Y_H2__H1_H2").binary().weight(1) //Y868
-    val Y_H2__H2_H2 = model.addVariable("Y_H2__H2_H2").binary().weight(1) //Y888
+    val X_W__W_W = solver.makeIntVar(
+        0.0,
+        Int.MAX_VALUE.toDouble(), "X_W__W_W"
+    ) //X444
 
-    // Constraints
-    model.addExpression("A__W_W") //A44
-        .lower(cell11)
-        .set(X_W__W_W, 2) //X444
-        .set(X_W__W_H1, 1) //X446
-        .set(X_W__W_H2, 1) //X448
-        .weight(1)
-    model.addExpression("A__W_H1") //A46
-        .lower(cell12)
-        .set(X_W__W_H1, 1) //X446
-        .set(X_W__H1_H1, 2) //X466
-        .set(X_W__H1_H2, 1) //X468
-        .set(X_H1__W_W, 2) //X644
-        .set(X_H1__W_H1, 1) //X646
-        .set(X_H1__W_H2, 1) //X648
-        .weight(1)
-    model.addExpression("A__W_H2") //A48
-        .lower(cell13)
-        .set(X_W__W_H2, 1) //X448
-        .set(X_W__H1_H2, 1) //X468
-        .set(X_W__H2_H2, 2) //X488
-        .set(X_H2__W_W, 2) //X844
-        .set(X_H2__W_H1, 1) //X846
-        .set(X_H2__W_H2, 1) //X848
-        .weight(1)
-    model.addExpression("A__H1_H1") //A66
-        .lower(cell22)
-        .set(X_H1__W_H1, 1) //X646
-        .set(X_H1__H1_H1, 2) //X666
-        .set(X_H1__H1_H2, 1) //X668
-        .weight(1)
-    model.addExpression("A__H1_H2") //A68
-        .lower(cell23)
-        .set(X_H1__W_H2, 1) //X648
-        .set(X_H1__H1_H2, 1) //X668
-        .set(X_H1__H2_H2, 2) //X688
-        .set(X_H2__W_H1, 1) //X846
-        .set(X_H2__H1_H1, 2) //X866
-        .set(X_H2__H1_H2, 1) //X868
-        .weight(1)
-    model.addExpression("A__H2_H2") //A88
-        .lower(cell33)
-        .set(X_H2__W_H2, 1) //X848
-        .set(X_H2__H1_H2, 1) //X868
-        .set(X_H2__H2_H2, 2) //X888
-        .weight(1)
+    val X_W__W_H1 = solver.makeIntVar(
+        0.0,
+        Int.MAX_VALUE.toDouble(), "X_W__W_H1"
+    ) //X446
 
-    model.addExpression().weight(1).set(X_W__W_W, 1).set(Y_W__W_W, -100).upper(0)
-    model.addExpression().weight(1).set(X_W__W_H1, 1).set(Y_W__W_H1, -100).upper(0)
-    model.addExpression().weight(1).set(X_W__W_H2, 1).set(Y_W__W_H2, -100).upper(0)
-    model.addExpression().weight(1).set(X_W__H1_H1, 1).set(Y_W__H1_H1, -100).upper(0)
-    model.addExpression().weight(1).set(X_W__H1_H2, 1).set(Y_W__H1_H2, -100).upper(0)
-    model.addExpression().weight(1).set(X_W__H2_H2, 1).set(Y_W__H2_H2, -100).upper(0)
-    model.addExpression().weight(1).set(X_H1__W_W, 1).set(Y_H1__W_W, -100).upper(0)
-    model.addExpression().weight(1).set(X_H1__W_H1, 1).set(Y_H1__W_H1, -100).upper(0)
-    model.addExpression().weight(1).set(X_H1__W_H2, 1).set(Y_H1__W_H2, -100).upper(0)
-    model.addExpression().weight(1).set(X_H1__H1_H1, 1).set(Y_H1__H1_H1, -100).upper(0)
-    model.addExpression().weight(1).set(X_H1__H1_H2, 1).set(Y_H1__H1_H2, -100).upper(0)
-    model.addExpression().weight(1).set(X_H1__H2_H2, 1).set(Y_H1__H2_H2, -100).upper(0)
-    model.addExpression().weight(1).set(X_H2__W_W, 1).set(Y_H2__W_W, -100).upper(0)
-    model.addExpression().weight(1).set(X_H2__W_H1, 1).set(Y_H2__W_H1, -100).upper(0)
-    model.addExpression().weight(1).set(X_H2__W_H2, 1).set(Y_H2__W_H2, -100).upper(0)
-    model.addExpression().weight(1).set(X_H2__H1_H1, 1).set(Y_H2__H1_H1, -100).upper(0)
-    model.addExpression().weight(1).set(X_H2__H1_H2, 1).set(Y_H2__H1_H2, -100).upper(0)
-    model.addExpression().weight(1).set(X_H2__H2_H2, 1).set(Y_H2__H2_H2, -100).upper(0)
+    val X_W__W_H2 = solver.makeIntVar(
+        0.0,
+        Int.MAX_VALUE.toDouble(), "X_W__W_H2"
+    ) //X448
 
-    val result = model.maximise()
-    return result.value
+    val X_W__H1_H1 = solver.makeIntVar(
+        0.0,
+        Int.MAX_VALUE.toDouble(), "X_W__H1_H1"
+    ) //X466
+
+    val X_W__H1_H2 = solver.makeIntVar(
+        0.0,
+        Int.MAX_VALUE.toDouble(), "X_W__H1_H2"
+    ) //X468
+
+    val X_W__H2_H2 = solver.makeIntVar(
+        0.0,
+        Int.MAX_VALUE.toDouble(), "X_W__H2_H2"
+    ) //X488
+
+    val X_H1__W_W = solver.makeIntVar(
+        0.0,
+        Int.MAX_VALUE.toDouble(), "X_H1__W_W"
+    ) //X644
+
+    val X_H1__W_H1 = solver.makeIntVar(
+        0.0,
+        Int.MAX_VALUE.toDouble(), "X_H1__W_H1"
+    ) //X646
+
+    val X_H1__W_H2 = solver.makeIntVar(
+        0.0,
+        Int.MAX_VALUE.toDouble(), "X_H1__W_H2"
+    ) //X648
+
+    val X_H1__H1_H1 = solver.makeIntVar(
+        0.0,
+        Int.MAX_VALUE.toDouble(), "X_H1__H1_H1"
+    ) //X666
+
+    val X_H1__H1_H2 = solver.makeIntVar(
+        0.0,
+        Int.MAX_VALUE.toDouble(), "X_H1__H1_H2"
+    ) //X668
+
+    val X_H1__H2_H2 = solver.makeIntVar(
+        0.0,
+        Int.MAX_VALUE.toDouble(), "X_H1__H2_H2"
+    ) //X688
+
+    val X_H2__W_W = solver.makeIntVar(
+        0.0,
+        Int.MAX_VALUE.toDouble(), "X_H2__W_W"
+    ) //X844
+
+    val X_H2__W_H1 = solver.makeIntVar(
+        0.0,
+        Int.MAX_VALUE.toDouble(), "X_H2__W_H1"
+    ) //X846
+
+    val X_H2__W_H2 = solver.makeIntVar(
+        0.0,
+        Int.MAX_VALUE.toDouble(), "X_H2__W_H2"
+    ) //X848
+
+    val X_H2__H1_H1 = solver.makeIntVar(
+        0.0,
+        Int.MAX_VALUE.toDouble(), "X_H2__H1_H1"
+    ) //X866
+
+    val X_H2__H1_H2 = solver.makeIntVar(
+        0.0,
+        Int.MAX_VALUE.toDouble(), "X_H2__H1_H2"
+    ) //X868
+
+    val X_H2__H2_H2 = solver.makeIntVar(
+        0.0,
+        Int.MAX_VALUE.toDouble(), "X_H2__H2_H2"
+    ) //X888
+
+
+    val Y_W__W_W = solver.makeBoolVar("Y_W__W_W") //Y444
+
+    val Y_W__W_H1 = solver.makeBoolVar("Y_W__W_H1") //Y446
+
+    val Y_W__W_H2 = solver.makeBoolVar("Y_W__W_H2") //Y448
+
+    val Y_W__H1_H1 = solver.makeBoolVar("Y_W__H1_H1") //Y466
+
+    val Y_W__H1_H2 = solver.makeBoolVar("Y_W__H1_H2") //Y468
+
+    val Y_W__H2_H2 = solver.makeBoolVar("Y_W__H2_H2") //Y488
+
+    val Y_H1__W_W = solver.makeBoolVar("Y_H1__W_W") //Y644
+
+    val Y_H1__W_H1 = solver.makeBoolVar("Y_H1__W_H1") //Y646
+
+    val Y_H1__W_H2 = solver.makeBoolVar("Y_H1__W_H2") //Y648
+
+    val Y_H1__H1_H1 = solver.makeBoolVar("Y_H1__H1_H1") //Y666
+
+    val Y_H1__H1_H2 = solver.makeBoolVar("Y_H1__H1_H2") //Y668
+
+    val Y_H1__H2_H2 = solver.makeBoolVar("Y_H1__H2_H2") //Y688
+
+    val Y_H2__W_W = solver.makeBoolVar("Y_H2__W_W") //Y844
+
+    val Y_H2__W_H1 = solver.makeBoolVar("Y_H2__W_H1") //Y846
+
+    val Y_H2__W_H2 = solver.makeBoolVar("Y_H2__W_H2") //Y848
+
+    val Y_H2__H1_H1 = solver.makeBoolVar("Y_H2__H1_H1") //Y866
+
+    val Y_H2__H1_H2 = solver.makeBoolVar("Y_H2__H1_H2") //Y868
+
+    val Y_H2__H2_H2 = solver.makeBoolVar("Y_H2__H2_H2") //Y888
+
+
+    println("Number of variables = " + solver.numVariables())
+
+    val A__W_W = solver.makeConstraint(
+        cell11.toDouble(),
+        Int.MAX_VALUE.toDouble(), "A__W_W"
+    ) //A44
+
+    A__W_W.setCoefficient(X_W__W_W, 2.0) //X444
+
+    A__W_W.setCoefficient(X_W__W_H1, 1.0) //X446
+
+    A__W_W.setCoefficient(X_W__W_H2, 1.0) //X448
+
+
+    val A__W_H1 = solver.makeConstraint(
+        cell12.toDouble(),
+        Int.MAX_VALUE.toDouble(), "A__W_H1"
+    ) //A46
+
+    A__W_H1.setCoefficient(X_W__W_H1, 1.0) //X446
+
+    A__W_H1.setCoefficient(X_W__H1_H1, 2.0) //X466
+
+    A__W_H1.setCoefficient(X_W__H1_H2, 1.0) //X468
+
+    A__W_H1.setCoefficient(X_H1__W_W, 2.0) //X644
+
+    A__W_H1.setCoefficient(X_H1__W_H1, 1.0) //X646
+
+    A__W_H1.setCoefficient(X_H1__W_H2, 1.0) //X648
+
+
+    val A__W_H2 = solver.makeConstraint(
+        cell13.toDouble(),
+        Int.MAX_VALUE.toDouble(), "A__W_H2"
+    ) //A48
+
+    A__W_H2.setCoefficient(X_W__W_H2, 1.0) //X448
+
+    A__W_H2.setCoefficient(X_W__H1_H2, 1.0) //X468
+
+    A__W_H2.setCoefficient(X_W__H2_H2, 2.0) //X488
+
+    A__W_H2.setCoefficient(X_H2__W_W, 2.0) //X844
+
+    A__W_H2.setCoefficient(X_H2__W_H1, 1.0) //X846
+
+    A__W_H2.setCoefficient(X_H2__W_H2, 1.0) //X848
+
+
+    val A__H1_H1 = solver.makeConstraint(
+        cell22.toDouble(),
+        Int.MAX_VALUE.toDouble(), "A__H1_H1"
+    ) //A66
+
+    A__H1_H1.setCoefficient(X_H1__W_H1, 1.0) //X646
+
+    A__H1_H1.setCoefficient(X_H1__H1_H1, 2.0) //X666
+
+    A__H1_H1.setCoefficient(X_H1__H1_H2, 1.0) //X668
+
+
+    val A__H1_H2 = solver.makeConstraint(
+        cell23.toDouble(),
+        Int.MAX_VALUE.toDouble(), "A__H1_H2"
+    ) //A68
+
+    A__H1_H2.setCoefficient(X_H1__W_H2, 1.0) //X648
+
+    A__H1_H2.setCoefficient(X_H1__H1_H2, 1.0) //X668
+
+    A__H1_H2.setCoefficient(X_H1__H2_H2, 2.0) //X688
+
+    A__H1_H2.setCoefficient(X_H2__W_H1, 1.0) //X846
+
+    A__H1_H2.setCoefficient(X_H2__H1_H1, 2.0) //X866
+
+    A__H1_H2.setCoefficient(X_H2__H1_H2, 1.0) //X868
+
+
+    val A__H2_H2 = solver.makeConstraint(
+        cell33.toDouble(),
+        Int.MAX_VALUE.toDouble(), "A__H2_H2"
+    ) //A88
+
+    A__H2_H2.setCoefficient(X_H2__W_H2, 1.0) //X848
+
+    A__H2_H2.setCoefficient(X_H2__H1_H2, 1.0) //X868
+
+    A__H2_H2.setCoefficient(X_H2__H2_H2, 2.0) //X888
+
+
+    val link1 = solver.makeConstraint(Int.MIN_VALUE.toDouble(), 0.0)
+    link1.setCoefficient(X_W__W_W, 1.0)
+    link1.setCoefficient(Y_W__W_W, -100.0)
+
+    val link2 = solver.makeConstraint(Int.MIN_VALUE.toDouble(), 0.0)
+    link2.setCoefficient(X_W__W_H1, 1.0)
+    link2.setCoefficient(Y_W__W_H1, -100.0)
+
+    val link3 = solver.makeConstraint(Int.MIN_VALUE.toDouble(), 0.0)
+    link3.setCoefficient(X_W__W_H2, 1.0)
+    link3.setCoefficient(Y_W__W_H2, -100.0)
+
+    val link4 = solver.makeConstraint(Int.MIN_VALUE.toDouble(), 0.0)
+    link4.setCoefficient(X_W__H1_H1, 1.0)
+    link4.setCoefficient(Y_W__H1_H1, -100.0)
+
+    val link5 = solver.makeConstraint(Int.MIN_VALUE.toDouble(), 0.0)
+    link5.setCoefficient(X_W__H1_H2, 1.0)
+    link5.setCoefficient(Y_W__H1_H2, -100.0)
+
+    val link6 = solver.makeConstraint(Int.MIN_VALUE.toDouble(), 0.0)
+    link6.setCoefficient(X_W__H2_H2, 1.0)
+    link6.setCoefficient(Y_W__H2_H2, -100.0)
+
+    val link7 = solver.makeConstraint(Int.MIN_VALUE.toDouble(), 0.0)
+    link7.setCoefficient(X_H1__W_W, 1.0)
+    link7.setCoefficient(Y_H1__W_W, -100.0)
+
+    val link8 = solver.makeConstraint(Int.MIN_VALUE.toDouble(), 0.0)
+    link8.setCoefficient(X_H1__W_H1, 1.0)
+    link8.setCoefficient(Y_H1__W_H1, -100.0)
+
+    val link9 = solver.makeConstraint(Int.MIN_VALUE.toDouble(), 0.0)
+    link9.setCoefficient(X_H1__W_H2, 1.0)
+    link9.setCoefficient(Y_H1__W_H2, -100.0)
+
+    val link10 = solver.makeConstraint(Int.MIN_VALUE.toDouble(), 0.0)
+    link10.setCoefficient(X_H1__H1_H1, 1.0)
+    link10.setCoefficient(Y_H1__H1_H1, -100.0)
+
+    val link11 = solver.makeConstraint(Int.MIN_VALUE.toDouble(), 0.0)
+    link11.setCoefficient(X_H1__H1_H2, 1.0)
+    link11.setCoefficient(Y_H1__H1_H2, -100.0)
+
+    val link12 = solver.makeConstraint(Int.MIN_VALUE.toDouble(), 0.0)
+    link12.setCoefficient(X_H1__H2_H2, 1.0)
+    link12.setCoefficient(Y_H1__H2_H2, -100.0)
+
+    val link13 = solver.makeConstraint(Int.MIN_VALUE.toDouble(), 0.0)
+    link13.setCoefficient(X_H2__W_W, 1.0)
+    link13.setCoefficient(Y_H2__W_W, -100.0)
+
+    val link14 = solver.makeConstraint(Int.MIN_VALUE.toDouble(), 0.0)
+    link14.setCoefficient(X_H2__W_H1, 1.0)
+    link14.setCoefficient(Y_H2__W_H1, -100.0)
+
+    val link15 = solver.makeConstraint(Int.MIN_VALUE.toDouble(), 0.0)
+    link15.setCoefficient(X_H2__W_H2, 1.0)
+    link15.setCoefficient(Y_H2__W_H2, -100.0)
+
+    val link16 = solver.makeConstraint(Int.MIN_VALUE.toDouble(), 0.0)
+    link16.setCoefficient(X_H2__H1_H1, 1.0)
+    link16.setCoefficient(Y_H2__H1_H1, -100.0)
+
+    val link17 = solver.makeConstraint(Int.MIN_VALUE.toDouble(), 0.0)
+    link17.setCoefficient(X_H2__H1_H2, 1.0)
+    link17.setCoefficient(Y_H2__H1_H2, -100.0)
+
+    val link18 = solver.makeConstraint(Int.MIN_VALUE.toDouble(), 0.0)
+    link18.setCoefficient(X_H2__H2_H2, 1.0)
+    link18.setCoefficient(Y_H2__H2_H2, -100.0)
+
+    println("Number of constraints = " + solver.numConstraints())
+
+    val objective = solver.objective()
+
+    objective.setCoefficient(X_W__W_W, 1.0)
+    objective.setCoefficient(X_W__W_H1, 1.0)
+    objective.setCoefficient(X_W__W_H2, 1.0)
+    objective.setCoefficient(X_W__H1_H1, 1.0)
+    objective.setCoefficient(X_W__H1_H2, 1.0)
+    objective.setCoefficient(X_W__H2_H2, 1.0)
+    objective.setCoefficient(X_H1__W_W, 1.0)
+    objective.setCoefficient(X_H1__W_H1, 1.0)
+    objective.setCoefficient(X_H1__W_H2, 1.0)
+    objective.setCoefficient(X_H1__H1_H1, 1.0)
+    objective.setCoefficient(X_H1__H1_H2, 1.0)
+    objective.setCoefficient(X_H1__H1_H2, 1.0)
+    objective.setCoefficient(X_H2__W_W, 1.0)
+    objective.setCoefficient(X_H2__W_H1, 1.0)
+    objective.setCoefficient(X_H2__W_H2, 1.0)
+    objective.setCoefficient(X_H2__H1_H1, 1.0)
+    objective.setCoefficient(X_H2__H1_H2, 1.0)
+    objective.setCoefficient(X_H2__H2_H2, 1.0)
+
+    objective.setCoefficient(Y_W__W_W, 1.0)
+    objective.setCoefficient(Y_W__W_H1, 1.0)
+    objective.setCoefficient(Y_W__W_H2, 1.0)
+    objective.setCoefficient(Y_W__H1_H1, 1.0)
+    objective.setCoefficient(Y_W__H1_H2, 1.0)
+    objective.setCoefficient(Y_W__H2_H2, 1.0)
+    objective.setCoefficient(Y_H1__W_W, 1.0)
+    objective.setCoefficient(Y_H1__W_H1, 1.0)
+    objective.setCoefficient(Y_H1__W_H2, 1.0)
+    objective.setCoefficient(Y_H1__H1_H1, 1.0)
+    objective.setCoefficient(Y_H1__H1_H2, 1.0)
+    objective.setCoefficient(Y_H1__H1_H2, 1.0)
+    objective.setCoefficient(Y_H2__W_W, 1.0)
+    objective.setCoefficient(Y_H2__W_H1, 1.0)
+    objective.setCoefficient(Y_H2__W_H2, 1.0)
+    objective.setCoefficient(Y_H2__H1_H1, 1.0)
+    objective.setCoefficient(Y_H2__H1_H2, 1.0)
+    objective.setCoefficient(Y_H2__H2_H2, 1.0)
+
+    // Objective direction
+
+    // Objective direction
+    objective.setMinimization()
+
+    // Solve the model
+
+    // Solve the model
+    val resultStatus = solver.solve()
+
+    // Check that the problem has an optimal solution
+
+    // Check that the problem has an optimal solution
+    if (resultStatus == ResultStatus.OPTIMAL) {
+        Log.d(TAG, "Solution found!")
+        Log.d(TAG, "----- Configurations used -----")
+        // Output solution values
+        Log.d(TAG, "X_W__W_W/X444: " + X_W__W_W.solutionValue())
+        Log.d(TAG, "X_W__W_H1/X446: " + X_W__W_H1.solutionValue())
+        Log.d(TAG, "X_W__W_H2/X448: " + X_W__W_H2.solutionValue())
+        Log.d(TAG, "X_W__H1_H1/X466: " + X_W__H1_H1.solutionValue())
+        Log.d(TAG, "X_W__H1_H2/X468: " + X_W__H1_H2.solutionValue())
+        Log.d(TAG, "X_W__H2_H2/X488: " + X_W__H2_H2.solutionValue())
+        Log.d(TAG, "X_H1__W_W/X644: " + X_H1__W_W.solutionValue())
+        Log.d(TAG, "X_H1__W_H1/X646: " + X_H1__W_H1.solutionValue())
+        Log.d(TAG, "X_H1__W_H2/X648: " + X_H1__W_H2.solutionValue())
+        Log.d(TAG, "X_H1__H1_H1/X666: " + X_H1__H1_H1.solutionValue())
+        Log.d(TAG, "X_H1__H1_H2/X668: " + X_H1__H1_H2.solutionValue())
+        Log.d(TAG, "X_H1__H2_H2/X688: " + X_H1__H2_H2.solutionValue())
+        Log.d(TAG, "X_H2__W_W/X844: " + X_H2__W_W.solutionValue())
+        Log.d(TAG, "X_H2__W_H1/X846: " + X_H2__W_H1.solutionValue())
+        Log.d(TAG, "X_H2__W_H2/X848: " + X_H2__W_H2.solutionValue())
+        Log.d(TAG, "X_H2__H1_H1/X866: " + X_H2__H1_H1.solutionValue())
+        Log.d(TAG, "X_H2__H1_H2/X868: " + X_H2__H1_H2.solutionValue())
+        Log.d(TAG, "X_H2__H2_H2/X888: " + X_H2__H2_H2.solutionValue())
+
+        Log.d(TAG, "----- Changes used -----")
+        Log.d(TAG, "Y_W__W_W/Y444: " + Y_W__W_W.solutionValue())
+        Log.d(TAG, "Y_W__W_H1/Y446: " + Y_W__W_H1.solutionValue())
+        Log.d(TAG, "Y_W__W_H2/Y448: " + Y_W__W_H2.solutionValue())
+        Log.d(TAG, "Y_W__H1_H1/Y466: " + Y_W__H1_H1.solutionValue())
+        Log.d(TAG, "Y_W__H1_H2/Y468: " + Y_W__H1_H2.solutionValue())
+        Log.d(TAG, "Y_W__H2_H2/Y488: " + Y_W__H2_H2.solutionValue())
+        Log.d(TAG, "Y_H1__W_W/Y644: " + Y_H1__W_W.solutionValue())
+        Log.d(TAG, "Y_H1__W_H1/Y646: " + Y_H1__W_H1.solutionValue())
+        Log.d(TAG, "Y_H1__W_H2/Y648: " + Y_H1__W_H2.solutionValue())
+        Log.d(TAG, "Y_H1__H1_H1/Y666: " + Y_H1__H1_H1.solutionValue())
+        Log.d(TAG, "Y_H1__H1_H2/Y668: " + Y_H1__H1_H2.solutionValue())
+        Log.d(TAG, "Y_H1__H2_H2/Y688: " + Y_H1__H2_H2.solutionValue())
+        Log.d(TAG, "Y_H2__W_W/Y844: " + Y_H2__W_W.solutionValue())
+        Log.d(TAG, "Y_H2__W_H1/Y846: " + Y_H2__W_H1.solutionValue())
+        Log.d(TAG, "Y_H2__W_H2/Y848: " + Y_H2__W_H2.solutionValue())
+        Log.d(TAG, "Y_H2__H1_H1/Y866: " + Y_H2__H1_H1.solutionValue())
+        Log.d(TAG, "Y_H2__H1_H2/Y868: " + Y_H2__H1_H2.solutionValue())
+        Log.d(TAG, "Y_H2__H2_H2/Y888: " + Y_H2__H2_H2.solutionValue())
+    } else {
+        Log.d(TAG, "No solution found, result status is: $resultStatus")
+    }
+
+    Log.d(TAG, "Solution:")
+    Log.d(TAG, "Objective value = " + objective.value())
+
+    return objective.value()
 }
