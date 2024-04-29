@@ -1,6 +1,10 @@
 package hu.iplayzed;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+
 import com.google.ortools.Loader;
 import com.google.ortools.linearsolver.MPConstraint;
 import com.google.ortools.linearsolver.MPObjective;
@@ -9,20 +13,45 @@ import com.google.ortools.linearsolver.MPVariable;
 
 public class BlockCalculatorUI extends JFrame {
 
-    private JTextField blockWidthField;
     private JTextField firstLengthField;
     private JTextField secondLengthField;
     private JButton generateTableButton;
+    private JScrollPane scrollPane;
     private JButton calculateOptimumButton;
     private JTextArea resultArea;
+    private JTextField blockWidthField;
+    private DefaultTableModel tableModel;
+    private JTable table;
 
     public BlockCalculatorUI() {
         // Initialize components
+        super("Optimization Parameters");
+
         blockWidthField = new JTextField(10);
         firstLengthField = new JTextField(10);
         secondLengthField = new JTextField(10);
+
         generateTableButton = new JButton("GENERATE TABLE");
+
+        String[] columnNames = {"", "A", "B", "C"};
+        Object[][] data = {
+                {"X", "", "", ""},
+                {"", "", "", ""},
+                {"", "X", "", ""},
+                {"", "X", "X", ""},
+        };
+        tableModel = new DefaultTableModel(data, columnNames) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                // Make cells non-editable except the USER_INPUT fields
+                return (row > 0 && column > 0) && !getValueAt(row, column).equals("X");
+            }
+        };
+        table = new JTable(tableModel);
+        scrollPane = new JScrollPane(table);
+
         calculateOptimumButton = new JButton("CALCULATE OPTIMUM");
+
         resultArea = new JTextArea("Optimal days will appear here", 5, 20);
 
         // Layout setup
@@ -34,6 +63,7 @@ public class BlockCalculatorUI extends JFrame {
         this.add(new JLabel("Enter second possible length in cm"));
         this.add(secondLengthField);
         this.add(generateTableButton);
+        this.add(scrollPane);
         this.add(calculateOptimumButton);
         this.add(new JScrollPane(resultArea));
 
@@ -47,16 +77,28 @@ public class BlockCalculatorUI extends JFrame {
     }
 
     private void setupActionListeners() {
-        generateTableButton.addActionListener(e -> generateTable());
         calculateOptimumButton.addActionListener(e -> calculateOptimum());
+        generateTableButton.addActionListener(this::generateTable);
     }
 
-    private void generateTable() {
-        // Logic to generate table
+    private void generateTable(ActionEvent e) {
+        tableModel.setValueAt(blockWidthField.getText(), 1, 0);
+        tableModel.setValueAt(firstLengthField.getText(), 2, 0);
+        tableModel.setValueAt(secondLengthField.getText(), 3, 0);
+
+        tableModel.setValueAt(blockWidthField.getText(), 0, 1);
+        tableModel.setValueAt(firstLengthField.getText(), 0, 2);
+        tableModel.setValueAt(secondLengthField.getText(), 0, 3);
     }
 
     @SuppressWarnings("DuplicatedCode")
     private void calculateOptimum() {
+        int cell11 = Integer.parseInt((String) tableModel.getValueAt(1,1));
+        int cell12 = Integer.parseInt((String) tableModel.getValueAt(1,2));
+        int cell13 = Integer.parseInt((String) tableModel.getValueAt(1,3));
+        int cell22 = Integer.parseInt((String) tableModel.getValueAt(2,2));
+        int cell23 = Integer.parseInt((String) tableModel.getValueAt(2,3));
+        int cell33 = Integer.parseInt((String) tableModel.getValueAt(3,3));
         Loader.loadNativeLibraries();
         MPSolver solver = new MPSolver(
                 "StoneCuttingOptimization",
@@ -102,12 +144,12 @@ public class BlockCalculatorUI extends JFrame {
 
         System.out.println("Number of variables = " + solver.numVariables());
 
-        MPConstraint A__W_W = solver.makeConstraint(10, Integer.MAX_VALUE, "A__W_W"); //A44
+        MPConstraint A__W_W = solver.makeConstraint(cell11, Integer.MAX_VALUE, "A__W_W"); //A44
         A__W_W.setCoefficient(X_W__W_W, 2); //X444
         A__W_W.setCoefficient(X_W__W_H1, 1); //X446
         A__W_W.setCoefficient(X_W__W_H2, 1); //X448
 
-        MPConstraint A__W_H1 = solver.makeConstraint(10, Integer.MAX_VALUE, "A__W_H1"); //A46
+        MPConstraint A__W_H1 = solver.makeConstraint(cell12, Integer.MAX_VALUE, "A__W_H1"); //A46
         A__W_H1.setCoefficient(X_W__W_H1, 1); //X446
         A__W_H1.setCoefficient(X_W__H1_H1, 2); //X466
         A__W_H1.setCoefficient(X_W__H1_H2, 1); //X468
@@ -115,7 +157,7 @@ public class BlockCalculatorUI extends JFrame {
         A__W_H1.setCoefficient(X_H1__W_H1, 1); //X646
         A__W_H1.setCoefficient(X_H1__W_H2, 1); //X648
 
-        MPConstraint A__W_H2 = solver.makeConstraint(0, Integer.MAX_VALUE, "A__W_H2"); //A48
+        MPConstraint A__W_H2 = solver.makeConstraint(cell13, Integer.MAX_VALUE, "A__W_H2"); //A48
         A__W_H2.setCoefficient(X_W__W_H2, 1); //X448
         A__W_H2.setCoefficient(X_W__H1_H2, 1); //X468
         A__W_H2.setCoefficient(X_W__H2_H2, 2); //X488
@@ -123,12 +165,12 @@ public class BlockCalculatorUI extends JFrame {
         A__W_H2.setCoefficient(X_H2__W_H1, 1); //X846
         A__W_H2.setCoefficient(X_H2__W_H2, 1); //X848
 
-        MPConstraint A__H1_H1 = solver.makeConstraint(5, Integer.MAX_VALUE, "A__H1_H1"); //A66
+        MPConstraint A__H1_H1 = solver.makeConstraint(cell22, Integer.MAX_VALUE, "A__H1_H1"); //A66
         A__H1_H1.setCoefficient(X_H1__W_H1, 1); //X646
         A__H1_H1.setCoefficient(X_H1__H1_H1, 2); //X666
         A__H1_H1.setCoefficient(X_H1__H1_H2, 1); //X668
 
-        MPConstraint A__H1_H2 = solver.makeConstraint(10, Integer.MAX_VALUE, "A__H1_H2"); //A68
+        MPConstraint A__H1_H2 = solver.makeConstraint(cell23, Integer.MAX_VALUE, "A__H1_H2"); //A68
         A__H1_H2.setCoefficient(X_H1__W_H2, 1); //X648
         A__H1_H2.setCoefficient(X_H1__H1_H2, 1); //X668
         A__H1_H2.setCoefficient(X_H1__H2_H2, 2); //X688
@@ -136,7 +178,7 @@ public class BlockCalculatorUI extends JFrame {
         A__H1_H2.setCoefficient(X_H2__H1_H1, 2); //X866
         A__H1_H2.setCoefficient(X_H2__H1_H2, 1); //X868
 
-        MPConstraint A__H2_H2 = solver.makeConstraint(20, Integer.MAX_VALUE, "A__H2_H2"); //A88
+        MPConstraint A__H2_H2 = solver.makeConstraint(cell33, Integer.MAX_VALUE, "A__H2_H2"); //A88
         A__H2_H2.setCoefficient(X_H2__W_H2, 1); //X848
         A__H2_H2.setCoefficient(X_H2__H1_H2, 1); //X868
         A__H2_H2.setCoefficient(X_H2__H2_H2, 2); //X888

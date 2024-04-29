@@ -5,10 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c7045a9a-9b40-4550-9731-707826ede612" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/hu/iplayzed/BlockCalculatorUI.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/hu/iplayzed/Main.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/hu/iplayzed/BlockCalculatorUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hu/iplayzed/BlockCalculatorUI.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -35,7 +33,7 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
-    "Application.BlockCalculatorUI.executor": "Run",
+    "Application.BlockCalculatorUI.executor": "Debug",
     "Application.Main.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "java",
@@ -67,7 +65,7 @@
       <updated>1714425472685</updated>
       <workItem from="1714425473703" duration="50000" />
       <workItem from="1714425566950" duration="46000" />
-      <workItem from="1714425676841" duration="660000" />
+      <workItem from="1714425676841" duration="4873000" />
     </task>
     <servers />
   </component>
