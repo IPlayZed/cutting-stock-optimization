@@ -2,8 +2,11 @@ package hu.iplayzed;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.google.ortools.Loader;
 import com.google.ortools.linearsolver.MPConstraint;
@@ -13,15 +16,13 @@ import com.google.ortools.linearsolver.MPVariable;
 
 public class BlockCalculatorUI extends JFrame {
 
-    private JTextField firstLengthField;
-    private JTextField secondLengthField;
-    private JButton generateTableButton;
-    private JScrollPane scrollPane;
-    private JButton calculateOptimumButton;
-    private JTextArea resultArea;
-    private JTextField blockWidthField;
-    private DefaultTableModel tableModel;
-    private JTable table;
+    private final JTextField firstLengthField;
+    private final JTextField secondLengthField;
+    private final JButton generateTableButton;
+    private final JButton calculateOptimumButton;
+    private final JTextArea resultArea;
+    private final JTextField blockWidthField;
+    private final DefaultTableModel tableModel;
 
     public BlockCalculatorUI() {
         // Initialize components
@@ -33,12 +34,13 @@ public class BlockCalculatorUI extends JFrame {
 
         generateTableButton = new JButton("GENERATE TABLE");
 
-        String[] columnNames = {"", "A", "B", "C"};
+        String[] columnNames = {"Mirror", "Width", "Height1", "Height2"};
+        final String NODATA = "        X";
         Object[][] data = {
-                {"X", "", "", ""},
+                {NODATA, "", "", ""},
                 {"", "", "", ""},
-                {"", "X", "", ""},
-                {"", "X", "X", ""},
+                {"", NODATA, "", ""},
+                {"", NODATA, NODATA, ""},
         };
         tableModel = new DefaultTableModel(data, columnNames) {
             @Override
@@ -47,8 +49,21 @@ public class BlockCalculatorUI extends JFrame {
                 return (row > 0 && column > 0) && !getValueAt(row, column).equals("X");
             }
         };
-        table = new JTable(tableModel);
-        scrollPane = new JScrollPane(table);
+        JTable table = new JTable(tableModel);
+
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            TableColumn column = table.getColumnModel().getColumn(i);
+            column.setPreferredWidth(80);
+        }
+
+        // Disable auto resizing
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+
+        // Set the table's preferred size
+        table.setPreferredScrollableViewportSize(table.getPreferredSize());
+
+        JScrollPane scrollPane = new JScrollPane(table);
+        add(scrollPane, BorderLayout.CENTER);
 
         calculateOptimumButton = new JButton("CALCULATE OPTIMUM");
 
@@ -77,7 +92,8 @@ public class BlockCalculatorUI extends JFrame {
     }
 
     private void setupActionListeners() {
-        calculateOptimumButton.addActionListener(e -> calculateOptimum());
+        //noinspection unused
+        calculateOptimumButton.addActionListener(event -> calculateOptimum());
         generateTableButton.addActionListener(this::generateTable);
     }
 
@@ -104,45 +120,81 @@ public class BlockCalculatorUI extends JFrame {
                 "StoneCuttingOptimization",
                 MPSolver.OptimizationProblemType.CBC_MIXED_INTEGER_PROGRAMMING);
 
+        List<MPVariable> xVariables = new ArrayList<>();
         MPVariable X_W__W_W = solver.makeIntVar(0, Integer.MAX_VALUE, "X_W__W_W"); //X444
+        xVariables.add(X_W__W_W);
         MPVariable X_W__W_H1 = solver.makeIntVar(0, Integer.MAX_VALUE, "X_W__W_H1"); //X446
+        xVariables.add(X_W__W_H1);
         MPVariable X_W__W_H2 = solver.makeIntVar(0, Integer.MAX_VALUE, "X_W__W_H2"); //X448
+        xVariables.add(X_W__W_H2);
         MPVariable X_W__H1_H1 = solver.makeIntVar(0, Integer.MAX_VALUE, "X_W__H1_H1"); //X466
+        xVariables.add(X_W__H1_H1);
         MPVariable X_W__H1_H2 = solver.makeIntVar(0, Integer.MAX_VALUE, "X_W__H1_H2"); //X468
+        xVariables.add(X_W__H1_H2);
         MPVariable X_W__H2_H2 = solver.makeIntVar(0, Integer.MAX_VALUE, "X_W__H2_H2"); //X488
+        xVariables.add(X_W__H2_H2);
         MPVariable X_H1__W_W = solver.makeIntVar(0, Integer.MAX_VALUE, "X_H1__W_W"); //X644
+        xVariables.add(X_H1__W_W);
         MPVariable X_H1__W_H1 = solver.makeIntVar(0, Integer.MAX_VALUE, "X_H1__W_H1"); //X646
+        xVariables.add(X_H1__W_H1);
         MPVariable X_H1__W_H2 = solver.makeIntVar(0, Integer.MAX_VALUE, "X_H1__W_H2"); //X648
+        xVariables.add(X_H1__W_H2);
         MPVariable X_H1__H1_H1 = solver.makeIntVar(0, Integer.MAX_VALUE, "X_H1__H1_H1"); //X666
+        xVariables.add(X_H1__H1_H1);
         MPVariable X_H1__H1_H2 = solver.makeIntVar(0, Integer.MAX_VALUE, "X_H1__H1_H2"); //X668
+        xVariables.add(X_H1__H1_H2);
         MPVariable X_H1__H2_H2 = solver.makeIntVar(0, Integer.MAX_VALUE, "X_H1__H2_H2"); //X688
+        xVariables.add(X_H1__H2_H2);
         MPVariable X_H2__W_W = solver.makeIntVar(0, Integer.MAX_VALUE, "X_H2__W_W"); //X844
+        xVariables.add(X_H2__W_W);
         MPVariable X_H2__W_H1 = solver.makeIntVar(0, Integer.MAX_VALUE, "X_H2__W_H1"); //X846
+        xVariables.add(X_H2__W_H1);
         MPVariable X_H2__W_H2 = solver.makeIntVar(0, Integer.MAX_VALUE, "X_H2__W_H2"); //X848
+        xVariables.add(X_H2__W_H2);
         MPVariable X_H2__H1_H1 = solver.makeIntVar(0, Integer.MAX_VALUE, "X_H2__H1_H1"); //X866
+        xVariables.add(X_H2__H1_H1);
         MPVariable X_H2__H1_H2 = solver.makeIntVar(0, Integer.MAX_VALUE, "X_H2__H1_H2"); //X868
+        xVariables.add(X_H2__H1_H2);
         MPVariable X_H2__H2_H2 = solver.makeIntVar(0, Integer.MAX_VALUE, "X_H2__H2_H2"); //X888
+        xVariables.add(X_H2__H2_H2);
 
+        List<MPVariable> yVariables = new ArrayList<>();
         MPVariable Y_W__W_W = solver.makeBoolVar("Y_W__W_W"); //Y444
+        yVariables.add(Y_W__W_W);
         MPVariable Y_W__W_H1 = solver.makeBoolVar("Y_W__W_H1"); //Y446
+        yVariables.add(Y_W__W_H1);
         MPVariable Y_W__W_H2 = solver.makeBoolVar("Y_W__W_H2"); //Y448
+        yVariables.add(Y_W__W_H2);
         MPVariable Y_W__H1_H1 = solver.makeBoolVar("Y_W__H1_H1"); //Y466
+        yVariables.add(Y_W__H1_H1);
         MPVariable Y_W__H1_H2 = solver.makeBoolVar("Y_W__H1_H2"); //Y468
+        yVariables.add(Y_W__H1_H2);
         MPVariable Y_W__H2_H2 = solver.makeBoolVar("Y_W__H2_H2"); //Y488
+        yVariables.add(Y_W__H2_H2);
         MPVariable Y_H1__W_W = solver.makeBoolVar("Y_H1__W_W"); //Y644
+        yVariables.add(Y_H1__W_W);
         MPVariable Y_H1__W_H1 = solver.makeBoolVar("Y_H1__W_H1"); //Y646
+        yVariables.add(Y_H1__W_H1);
         MPVariable Y_H1__W_H2 = solver.makeBoolVar("Y_H1__W_H2"); //Y648
+        yVariables.add(Y_H1__W_H2);
         MPVariable Y_H1__H1_H1 = solver.makeBoolVar("Y_H1__H1_H1"); //Y666
+        yVariables.add(Y_H1__H1_H1);
         MPVariable Y_H1__H1_H2 = solver.makeBoolVar("Y_H1__H1_H2"); //Y668
+        yVariables.add(Y_H1__H1_H2);
         MPVariable Y_H1__H2_H2 = solver.makeBoolVar("Y_H1__H2_H2"); //Y688
+        yVariables.add(Y_H1__H2_H2);
         MPVariable Y_H2__W_W = solver.makeBoolVar("Y_H2__W_W"); //Y844
+        yVariables.add(Y_H2__W_W);
         MPVariable Y_H2__W_H1 = solver.makeBoolVar("Y_H2__W_H1"); //Y846
+        yVariables.add(Y_H2__W_H1);
         MPVariable Y_H2__W_H2 = solver.makeBoolVar("Y_H2__W_H2"); //Y848
+        yVariables.add(Y_H2__W_H2);
         MPVariable Y_H2__H1_H1 = solver.makeBoolVar("Y_H2__H1_H1"); //Y866
+        yVariables.add(Y_H2__H1_H1);
         MPVariable Y_H2__H1_H2 = solver.makeBoolVar("Y_H2__H1_H2"); //Y868
+        yVariables.add(Y_H2__H1_H2);
         MPVariable Y_H2__H2_H2 = solver.makeBoolVar("Y_H2__H2_H2"); //Y888
-
-        System.out.println("Number of variables = " + solver.numVariables());
+        yVariables.add(Y_H2__H2_H2);
 
         MPConstraint A__W_W = solver.makeConstraint(cell11, Integer.MAX_VALUE, "A__W_W"); //A44
         A__W_W.setCoefficient(X_W__W_W, 2); //X444
@@ -255,8 +307,6 @@ public class BlockCalculatorUI extends JFrame {
         link18.setCoefficient(X_H2__H2_H2, 1);
         link18.setCoefficient(Y_H2__H2_H2, -100);
 
-        System.out.println("Number of constraints = " + solver.numConstraints());
-
         MPObjective objective = solver.objective();
 
         objective.setCoefficient(X_W__W_W, 1);
@@ -303,61 +353,45 @@ public class BlockCalculatorUI extends JFrame {
         // Solve the model
         MPSolver.ResultStatus resultStatus = solver.solve();
 
+        resultArea.append("============ NEW RUN ============\n");
+        resultArea.append("Number of variables = " + solver.numVariables());
+        resultArea.append("Number of constraints = " + solver.numConstraints());
         // Check that the problem has an optimal solution
         if (resultStatus == MPSolver.ResultStatus.OPTIMAL) {
-            System.out.println("Solution found!");
-            System.out.println();
+            resultArea.setText("Solution found!\n");
             // Output solution values
-            System.out.println("X_W__W_W/X444: " + X_W__W_W.solutionValue());
-            System.out.println("X_W__W_H1/X446: " + X_W__W_H1.solutionValue());
-            System.out.println("X_W__W_H2/X448: " + X_W__W_H2.solutionValue());
-            System.out.println("X_W__H1_H1/X466: " + X_W__H1_H1.solutionValue());
-            System.out.println("X_W__H1_H2/X468: " + X_W__H1_H2.solutionValue());
-            System.out.println("X_W__H2_H2/X488: " + X_W__H2_H2.solutionValue());
-            System.out.println("X_H1__W_W/X644: " + X_H1__W_W.solutionValue());
-            System.out.println("X_H1__W_H1/X646: " + X_H1__W_H1.solutionValue());
-            System.out.println("X_H1__W_H2/X648: " + X_H1__W_H2.solutionValue());
-            System.out.println("X_H1__H1_H1/X666: " + X_H1__H1_H1.solutionValue());
-            System.out.println("X_H1__H1_H2/X668: " + X_H1__H1_H2.solutionValue());
-            System.out.println("X_H1__H2_H2/X688: " + X_H1__H2_H2.solutionValue());
-            System.out.println("X_H2__W_W/X844: " + X_H2__W_W.solutionValue());
-            System.out.println("X_H2__W_H1/X846: " + X_H2__W_H1.solutionValue());
-            System.out.println("X_H2__W_H2/X848: " + X_H2__W_H2.solutionValue());
-            System.out.println("X_H2__H1_H1/X866: " + X_H2__H1_H1.solutionValue());
-            System.out.println("X_H2__H1_H2/X868: " + X_H2__H1_H2.solutionValue());
-            System.out.println("X_H2__H2_H2/X888: " + X_H2__H2_H2.solutionValue());
-            System.out.println();
-
-            System.out.println("Y_W__W_W/Y444: " + Y_W__W_W.solutionValue());
-            System.out.println("Y_W__W_H1/Y446: " + Y_W__W_H1.solutionValue());
-            System.out.println("Y_W__W_H2/Y448: " + Y_W__W_H2.solutionValue());
-            System.out.println("Y_W__H1_H1/Y466: " + Y_W__H1_H1.solutionValue());
-            System.out.println("Y_W__H1_H2/Y468: " + Y_W__H1_H2.solutionValue());
-            System.out.println("Y_W__H2_H2/Y488: " + Y_W__H2_H2.solutionValue());
-            System.out.println("Y_H1__W_W/Y644: " + Y_H1__W_W.solutionValue());
-            System.out.println("Y_H1__W_H1/Y646: " + Y_H1__W_H1.solutionValue());
-            System.out.println("Y_H1__W_H2/Y648: " + Y_H1__W_H2.solutionValue());
-            System.out.println("Y_H1__H1_H1/Y666: " + Y_H1__H1_H1.solutionValue());
-            System.out.println("Y_H1__H1_H2/Y668: " + Y_H1__H1_H2.solutionValue());
-            System.out.println("Y_H1__H2_H2/Y688: " + Y_H1__H2_H2.solutionValue());
-            System.out.println("Y_H2__W_W/Y844: " + Y_H2__W_W.solutionValue());
-            System.out.println("Y_H2__W_H1/Y846: " + Y_H2__W_H1.solutionValue());
-            System.out.println("Y_H2__W_H2/Y848: " + Y_H2__W_H2.solutionValue());
-            System.out.println("Y_H2__H1_H1/Y866: " + Y_H2__H1_H1.solutionValue());
-            System.out.println("Y_H2__H1_H2/Y868: " + Y_H2__H1_H2.solutionValue());
-            System.out.println("Y_H2__H2_H2/Y888: " + Y_H2__H2_H2.solutionValue());
-            System.out.println();
-
+            resultArea.append("Solution: Objective value = " + objective.value() +
+                    ", which is the minimal amount of days needed to produce the order.\n");
+            StringBuilder xResults = new StringBuilder();
+            xResults.append("Solution found! Here are the non-zero build configurations:\n");
+            for (MPVariable variable : xVariables) {
+                if (variable.solutionValue() != 0) {
+                    xResults.append(variable.name()).append(": ").append(Math.round(variable.solutionValue()))
+                            .append("\n");
+                }
+            }
+            StringBuilder yResults = new StringBuilder();
+            resultArea.append(String.valueOf(yResults));
+            yResults.append("Here are the transitions:\n");
+            for (MPVariable variable : yVariables) {
+                if (variable.solutionValue() != 0) {
+                    yResults.append(variable.name()).append("\n");
+                }
+            }
+            resultArea.append(String.valueOf(xResults));
+            resultArea.append(String.valueOf(yResults));
         } else {
-            System.out.println("No solution found, result status is: " + resultStatus);
+            resultArea.setText("No solution found, result status is: " + resultStatus + "\n");
         }
-
-        System.out.println("Solution:");
-        System.out.println("Objective value = " + objective.value());
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(BlockCalculatorUI::new);
+        SwingUtilities.invokeLater(() -> {
+            BlockCalculatorUI ui = new BlockCalculatorUI();
+            ui.pack(); // Resize frame to fit the table's preferred size
+            ui.setLocationRelativeTo(null); // Center the window on the screen
+            ui.setVisible(true);
+        });
     }
 }
 

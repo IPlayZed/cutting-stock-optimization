@@ -6,6 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="c7045a9a-9b40-4550-9731-707826ede612" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/hu/iplayzed/BlockCalculatorUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hu/iplayzed/BlockCalculatorUI.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -33,8 +34,10 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
-    "Application.BlockCalculatorUI.executor": "Debug",
+    "Application.BlockCalculatorUI.executor": "Run",
     "Application.Main.executor": "Run",
+    "Maven.cutting-stock-optimization [clean].executor": "Run",
+    "Maven.cutting-stock-optimization [package].executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "java",
     "kotlin-language-version-configured": "true",
@@ -44,6 +47,9 @@
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.0",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -66,6 +72,7 @@
       <workItem from="1714425473703" duration="50000" />
       <workItem from="1714425566950" duration="46000" />
       <workItem from="1714425676841" duration="4873000" />
+      <workItem from="1714473082981" duration="5971000" />
     </task>
     <servers />
   </component>
