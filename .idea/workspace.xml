@@ -24,6 +24,9 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 7
 }</component>
@@ -72,7 +75,8 @@
       <workItem from="1714425473703" duration="50000" />
       <workItem from="1714425566950" duration="46000" />
       <workItem from="1714425676841" duration="4873000" />
-      <workItem from="1714473082981" duration="5971000" />
+      <workItem from="1714473082981" duration="10514000" />
+      <workItem from="1714496725536" duration="3815000" />
     </task>
     <servers />
   </component>

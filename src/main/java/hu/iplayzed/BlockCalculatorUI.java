@@ -23,6 +23,8 @@ public class BlockCalculatorUI extends JFrame {
     private final JTextArea resultArea;
     private final JTextField blockWidthField;
     private final DefaultTableModel tableModel;
+    private final JTextField transitionTime;
+    private final JTextField mValue;
 
     public BlockCalculatorUI() {
         // Initialize components
@@ -31,6 +33,8 @@ public class BlockCalculatorUI extends JFrame {
         blockWidthField = new JTextField(10);
         firstLengthField = new JTextField(10);
         secondLengthField = new JTextField(10);
+        transitionTime = new JTextField(10);
+        mValue = new JTextField(10);
 
         generateTableButton = new JButton("GENERATE TABLE");
 
@@ -67,7 +71,7 @@ public class BlockCalculatorUI extends JFrame {
 
         calculateOptimumButton = new JButton("CALCULATE OPTIMUM");
 
-        resultArea = new JTextArea("Optimal days will appear here", 5, 20);
+        resultArea = new JTextArea("", 40, 50);
 
         // Layout setup
         this.setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
@@ -79,6 +83,10 @@ public class BlockCalculatorUI extends JFrame {
         this.add(secondLengthField);
         this.add(generateTableButton);
         this.add(scrollPane);
+        this.add(new JLabel("Enter transition time in days"));
+        this.add(transitionTime);
+        this.add(new JLabel("Enter M value for constraint."));
+        this.add(mValue);
         this.add(calculateOptimumButton);
         this.add(new JScrollPane(resultArea));
 
@@ -93,28 +101,59 @@ public class BlockCalculatorUI extends JFrame {
 
     private void setupActionListeners() {
         //noinspection unused
-        calculateOptimumButton.addActionListener(event -> calculateOptimum());
+        calculateOptimumButton.addActionListener(event -> calculateOptimum(transitionTime.getText(),
+                mValue.getText()));
         generateTableButton.addActionListener(this::generateTable);
     }
 
     private void generateTable(ActionEvent e) {
-        tableModel.setValueAt(blockWidthField.getText(), 1, 0);
-        tableModel.setValueAt(firstLengthField.getText(), 2, 0);
-        tableModel.setValueAt(secondLengthField.getText(), 3, 0);
+        tableModel.setValueAt(blockWidthField.getText() + " cm", 1, 0);
+        tableModel.setValueAt(firstLengthField.getText() + " cm", 2, 0);
+        tableModel.setValueAt(secondLengthField.getText() + " cm", 3, 0);
 
-        tableModel.setValueAt(blockWidthField.getText(), 0, 1);
-        tableModel.setValueAt(firstLengthField.getText(), 0, 2);
-        tableModel.setValueAt(secondLengthField.getText(), 0, 3);
+        tableModel.setValueAt(blockWidthField.getText() + " cm", 0, 1);
+        tableModel.setValueAt(firstLengthField.getText() + " cm", 0, 2);
+        tableModel.setValueAt(secondLengthField.getText() + " cm", 0, 3);
     }
 
     @SuppressWarnings("DuplicatedCode")
-    private void calculateOptimum() {
-        int cell11 = Integer.parseInt((String) tableModel.getValueAt(1,1));
-        int cell12 = Integer.parseInt((String) tableModel.getValueAt(1,2));
-        int cell13 = Integer.parseInt((String) tableModel.getValueAt(1,3));
-        int cell22 = Integer.parseInt((String) tableModel.getValueAt(2,2));
-        int cell23 = Integer.parseInt((String) tableModel.getValueAt(2,3));
-        int cell33 = Integer.parseInt((String) tableModel.getValueAt(3,3));
+    private void calculateOptimum(String transitionTime, String mValue) {
+        int cell11, cell12, cell13, cell22, cell23, cell33;
+        try {
+            cell11 = Integer.parseInt((String) tableModel.getValueAt(1,1));
+            cell12 = Integer.parseInt((String) tableModel.getValueAt(1,2));
+            cell13 = Integer.parseInt((String) tableModel.getValueAt(1,3));
+            cell22 = Integer.parseInt((String) tableModel.getValueAt(2,2));
+            cell23 = Integer.parseInt((String) tableModel.getValueAt(2,3));
+            cell33 = Integer.parseInt((String) tableModel.getValueAt(3,3));
+        }
+        catch (NumberFormatException exception)
+        {
+            resultArea.setText("""
+
+                    Make sure to press enter after writing the value into the table for it to \
+                    register.
+                    """);
+            return;
+        }
+
+        int _transitionTime = Integer.parseInt(transitionTime);
+        int _mValue = Integer.parseInt(mValue);
+
+        if (cell11 < 0 || cell12 < 0 || cell13 < 0 || cell22 < 0 || cell23 < 0 || cell33 < 0) {
+            resultArea.setText("\nBlock quantities can't be negative!");
+            return;
+        }
+        if (_transitionTime <= 0) {
+            resultArea.setText("\nTransition time must be greater than zero.\n");
+            return;
+        }
+        if (_mValue < 100) {
+            resultArea.setText("\nM should be at least 100 for acceptable operation.\n");
+            return;
+        }
+        _mValue *= -1;
+
         Loader.loadNativeLibraries();
         MPSolver solver = new MPSolver(
                 "StoneCuttingOptimization",
@@ -237,75 +276,75 @@ public class BlockCalculatorUI extends JFrame {
 
         MPConstraint link1 = solver.makeConstraint(Integer.MIN_VALUE, 0);
         link1.setCoefficient(X_W__W_W, 1);
-        link1.setCoefficient(Y_W__W_W, -100);
+        link1.setCoefficient(Y_W__W_W, _mValue);
 
         MPConstraint link2 = solver.makeConstraint(Integer.MIN_VALUE, 0);
         link2.setCoefficient(X_W__W_H1, 1);
-        link2.setCoefficient(Y_W__W_H1, -100);
+        link2.setCoefficient(Y_W__W_H1, _mValue);
 
         MPConstraint link3 = solver.makeConstraint(Integer.MIN_VALUE, 0);
         link3.setCoefficient(X_W__W_H2, 1);
-        link3.setCoefficient(Y_W__W_H2, -100);
+        link3.setCoefficient(Y_W__W_H2, _mValue);
 
         MPConstraint link4 = solver.makeConstraint(Integer.MIN_VALUE, 0);
         link4.setCoefficient(X_W__H1_H1, 1);
-        link4.setCoefficient(Y_W__H1_H1, -100);
+        link4.setCoefficient(Y_W__H1_H1, _mValue);
 
         MPConstraint link5 = solver.makeConstraint(Integer.MIN_VALUE, 0);
         link5.setCoefficient(X_W__H1_H2, 1);
-        link5.setCoefficient(Y_W__H1_H2, -100);
+        link5.setCoefficient(Y_W__H1_H2, _mValue);
 
         MPConstraint link6 = solver.makeConstraint(Integer.MIN_VALUE, 0);
         link6.setCoefficient(X_W__H2_H2, 1);
-        link6.setCoefficient(Y_W__H2_H2, -100);
+        link6.setCoefficient(Y_W__H2_H2, _mValue);
 
         MPConstraint link7 = solver.makeConstraint(Integer.MIN_VALUE, 0);
         link7.setCoefficient(X_H1__W_W, 1);
-        link7.setCoefficient(Y_H1__W_W, -100);
+        link7.setCoefficient(Y_H1__W_W, _mValue);
 
         MPConstraint link8 = solver.makeConstraint(Integer.MIN_VALUE, 0);
         link8.setCoefficient(X_H1__W_H1, 1);
-        link8.setCoefficient(Y_H1__W_H1, -100);
+        link8.setCoefficient(Y_H1__W_H1, _mValue);
 
         MPConstraint link9 = solver.makeConstraint(Integer.MIN_VALUE, 0);
         link9.setCoefficient(X_H1__W_H2, 1);
-        link9.setCoefficient(Y_H1__W_H2, -100);
+        link9.setCoefficient(Y_H1__W_H2, _mValue);
 
         MPConstraint link10 = solver.makeConstraint(Integer.MIN_VALUE, 0);
         link10.setCoefficient(X_H1__H1_H1, 1);
-        link10.setCoefficient(Y_H1__H1_H1, -100);
+        link10.setCoefficient(Y_H1__H1_H1, _mValue);
 
         MPConstraint link11 = solver.makeConstraint(Integer.MIN_VALUE, 0);
         link11.setCoefficient(X_H1__H1_H2, 1);
-        link11.setCoefficient(Y_H1__H1_H2, -100);
+        link11.setCoefficient(Y_H1__H1_H2, _mValue);
 
         MPConstraint link12 = solver.makeConstraint(Integer.MIN_VALUE, 0);
         link12.setCoefficient(X_H1__H2_H2, 1);
-        link12.setCoefficient(Y_H1__H2_H2, -100);
+        link12.setCoefficient(Y_H1__H2_H2, _mValue);
 
         MPConstraint link13 = solver.makeConstraint(Integer.MIN_VALUE, 0);
         link13.setCoefficient(X_H2__W_W, 1);
-        link13.setCoefficient(Y_H2__W_W, -100);
+        link13.setCoefficient(Y_H2__W_W, _mValue);
 
         MPConstraint link14 = solver.makeConstraint(Integer.MIN_VALUE, 0);
         link14.setCoefficient(X_H2__W_H1, 1);
-        link14.setCoefficient(Y_H2__W_H1, -100);
+        link14.setCoefficient(Y_H2__W_H1, _mValue);
 
         MPConstraint link15 = solver.makeConstraint(Integer.MIN_VALUE, 0);
         link15.setCoefficient(X_H2__W_H2, 1);
-        link15.setCoefficient(Y_H2__W_H2, -100);
+        link15.setCoefficient(Y_H2__W_H2, _mValue);
 
         MPConstraint link16 = solver.makeConstraint(Integer.MIN_VALUE, 0);
         link16.setCoefficient(X_H2__H1_H1, 1);
-        link16.setCoefficient(Y_H2__H1_H1, -100);
+        link16.setCoefficient(Y_H2__H1_H1, _mValue);
 
         MPConstraint link17 = solver.makeConstraint(Integer.MIN_VALUE, 0);
         link17.setCoefficient(X_H2__H1_H2, 1);
-        link17.setCoefficient(Y_H2__H1_H2, -100);
+        link17.setCoefficient(Y_H2__H1_H2, _mValue);
 
         MPConstraint link18 = solver.makeConstraint(Integer.MIN_VALUE, 0);
         link18.setCoefficient(X_H2__H2_H2, 1);
-        link18.setCoefficient(Y_H2__H2_H2, -100);
+        link18.setCoefficient(Y_H2__H2_H2, _mValue);
 
         MPObjective objective = solver.objective();
 
@@ -328,44 +367,43 @@ public class BlockCalculatorUI extends JFrame {
         objective.setCoefficient(X_H2__H1_H2, 1);
         objective.setCoefficient(X_H2__H2_H2, 1);
 
-        objective.setCoefficient(Y_W__W_W, 1);
-        objective.setCoefficient(Y_W__W_H1, 1);
-        objective.setCoefficient(Y_W__W_H2, 1);
-        objective.setCoefficient(Y_W__H1_H1, 1);
-        objective.setCoefficient(Y_W__H1_H2, 1);
-        objective.setCoefficient(Y_W__H2_H2, 1);
-        objective.setCoefficient(Y_H1__W_W, 1);
-        objective.setCoefficient(Y_H1__W_H1, 1);
-        objective.setCoefficient(Y_H1__W_H2, 1);
-        objective.setCoefficient(Y_H1__H1_H1, 1);
-        objective.setCoefficient(Y_H1__H1_H2, 1);
-        objective.setCoefficient(Y_H1__H1_H2, 1);
-        objective.setCoefficient(Y_H2__W_W, 1);
-        objective.setCoefficient(Y_H2__W_H1, 1);
-        objective.setCoefficient(Y_H2__W_H2, 1);
-        objective.setCoefficient(Y_H2__H1_H1, 1);
-        objective.setCoefficient(Y_H2__H1_H2, 1);
-        objective.setCoefficient(Y_H2__H2_H2, 1);
+        objective.setCoefficient(Y_W__W_W, _transitionTime);
+        objective.setCoefficient(Y_W__W_H1, _transitionTime);
+        objective.setCoefficient(Y_W__W_H2, _transitionTime);
+        objective.setCoefficient(Y_W__H1_H1, _transitionTime);
+        objective.setCoefficient(Y_W__H1_H2, _transitionTime);
+        objective.setCoefficient(Y_W__H2_H2, _transitionTime);
+        objective.setCoefficient(Y_H1__W_W, _transitionTime);
+        objective.setCoefficient(Y_H1__W_H1, _transitionTime);
+        objective.setCoefficient(Y_H1__W_H2, _transitionTime);
+        objective.setCoefficient(Y_H1__H1_H1, _transitionTime);
+        objective.setCoefficient(Y_H1__H1_H2, _transitionTime);
+        objective.setCoefficient(Y_H1__H1_H2, _transitionTime);
+        objective.setCoefficient(Y_H2__W_W, _transitionTime);
+        objective.setCoefficient(Y_H2__W_H1, _transitionTime);
+        objective.setCoefficient(Y_H2__W_H2, _transitionTime);
+        objective.setCoefficient(Y_H2__H1_H1, _transitionTime);
+        objective.setCoefficient(Y_H2__H1_H2, _transitionTime);
+        objective.setCoefficient(Y_H2__H2_H2, _transitionTime);
 
         // Objective direction
         objective.setMinimization();
 
         // Solve the model
         MPSolver.ResultStatus resultStatus = solver.solve();
-
-        resultArea.append("============ NEW RUN ============\n");
-        resultArea.append("Number of variables = " + solver.numVariables());
-        resultArea.append("Number of constraints = " + solver.numConstraints());
+        resultArea.setText("");
+        resultArea.append("\n============ NEW RUN ============\n");
+        resultArea.append("Number of variables = " + solver.numVariables() + "\n");
+        resultArea.append("Number of constraints = " + solver.numConstraints() + "\n");
         // Check that the problem has an optimal solution
         if (resultStatus == MPSolver.ResultStatus.OPTIMAL) {
-            resultArea.setText("Solution found!\n");
             // Output solution values
-            resultArea.append("Solution: Objective value = " + objective.value() +
-                    ", which is the minimal amount of days needed to produce the order.\n");
             StringBuilder xResults = new StringBuilder();
             xResults.append("Solution found! Here are the non-zero build configurations:\n");
+            int val = 0;
             for (MPVariable variable : xVariables) {
                 if (variable.solutionValue() != 0) {
+                    val += (int) variable.solutionValue();
                     xResults.append(variable.name()).append(": ").append(Math.round(variable.solutionValue()))
                             .append("\n");
                 }
@@ -375,13 +413,15 @@ public class BlockCalculatorUI extends JFrame {
             yResults.append("Here are the transitions:\n");
             for (MPVariable variable : yVariables) {
                 if (variable.solutionValue() != 0) {
+                    val += _transitionTime;
                     yResults.append(variable.name()).append("\n");
                 }
             }
             resultArea.append(String.valueOf(xResults));
             resultArea.append(String.valueOf(yResults));
+            resultArea.append("\n Total days needed at minimum is: " + val + "\n");
         } else {
-            resultArea.setText("No solution found, result status is: " + resultStatus + "\n");
+            resultArea.setText("\nNo solution found, result status is: " + resultStatus + "\n");
         }
     }
 
